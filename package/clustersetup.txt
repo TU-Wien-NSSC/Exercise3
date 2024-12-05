@@ -1,0 +1,15 @@
+1. Login with your user credentials using ssh - needs TU Wien VPN
+$ ssh nssc_XXX@tcad30.iue.tuwien.ac.at
+2. You will be asked to change your password upon first login; you first have to provide the previous password before you can enter the new one
+
+3. Setup build environment of test example
+3.1 Transfer exercise files to the cluster:
+$ scp -r FILE nssc_XXX@tcad30.iue.tuwien.ac.at:
+
+4. Prepare StencilJacobi
+4.1 Edit Makefile with 'vim': Update the path to Eigen with the path you extracted before in 3.4. save and close.
+4.2 Compile test program. Should work.
+
+5. Test submission process
+$ sbatch submit_script.sh
+
