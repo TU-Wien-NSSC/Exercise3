@@ -30,6 +30,7 @@
 *.exe
 *.out
 *.app
+mcint
 
 # Compressed folders
 *.gz
