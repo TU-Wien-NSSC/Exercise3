@@ -31,8 +31,11 @@
 *.out
 *.app
 cg
+mcint
+solver
 
 # Compressed folders
 *.gz
 
+# VS Code project files
 .vscode/
