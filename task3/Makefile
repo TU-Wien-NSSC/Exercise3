@@ -5,6 +5,11 @@ SRC = main.cpp
 all: 
 	$(CXX) $(CXXFLAGS) -o mcint $(SRC)
 
+openmp: 
+	export OMP_NUM_THREADS=3
+	$(CXX) $(CXXFLAGS) -fopenmp -o mcint $(SRC)
+
+
 # test SINX func
 sinx: 
 	./mcint SINX 0 6.283185 1e9
