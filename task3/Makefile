@@ -6,9 +6,10 @@ all:
 	$(CXX) $(CXXFLAGS) -o mcint $(SRC)
 
 openmp: 
-	export OMP_NUM_THREADS=3
 	$(CXX) $(CXXFLAGS) -fopenmp -o mcint $(SRC)
 
+parallelsinx:
+	OMP_NUM_THREADS=3 time ./mcint SINX 0 6.283185 1e6
 
 # test SINX func
 sinx: 

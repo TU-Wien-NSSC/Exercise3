@@ -11,6 +11,7 @@
 #include <random>
 #include <omp.h>
 #include <chrono>
+#include <time.h>
 //#include <functional>
 
 const double PI = 3.141592653589793238463;
@@ -107,15 +108,16 @@ struct Integrator {
 
   double integrate(){
     mt.seed(time(nullptr));
-    double sum = 0, x;
+    double sum = 0;
   
+    #pragma omp parallel shared (sum)
     {
-      #pragma omp parallel for reduction(+:sum)
+    std::cout << "thread id:" << omp_get_thread_num() << std::endl;
+    #pragma omp parallel for reduction(+:sum)
       for(int i = 0; i < samples; i++){
-      x = scaler(mt());
-      sum += selectedFunc(x); 
-    }
-    
+        double x = scaler(mt());
+        sum += selectedFunc(x); 
+      }
     }
     sum = sum/samples*(x_max-x_min);
     return sum;
@@ -127,8 +129,8 @@ struct Integrator {
 
 
 int main(int argc, char *argv[]) try {
-  int numThreads = omp_get_max_threads();
-  omp_set_num_threads(numThreads);
+  //int numThreads = omp_get_max_threads();
+  //omp_set_num_threads(numThreads);
   std::cout << "max threads: " << omp_get_max_threads()<< std::endl;
   std::cout << "num threads: " << omp_get_num_threads()<< std::endl;
   bool debug = false;
@@ -137,9 +139,15 @@ int main(int argc, char *argv[]) try {
 
   auto integrator_m = Integrator();
   integrator_m.setup(opts);
-  
+  //double time_s = omp_get_wtime();
+  struct timeval start, end;
+  //gettimeofday(&start, NULL);
   std::cout<< integrator_m.integrate() << std::endl;
-  
+  //gettimeofday(&end, NULL);
+  //delta = ((end.tv_sec-start.tv_sec)*1000000u + end.tv_sec-start.tv_sec)/1e6 << std::endl;
+  // double time_e = omp_get_wtime();
+  // std::cout << "time:" << (time_e-time_s)*1e3 << std::endl;
+    
 
   return EXIT_SUCCESS;
 } catch (std::exception &e) {
