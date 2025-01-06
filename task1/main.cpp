@@ -60,31 +60,31 @@ struct CCSmatrix {
       }
     }
   }
+};
 
-  // Matrix-vector multiplication for symmetric matrices
-  std::vector<double> multiplySymmetric(const std::vector<double> &vec) const {
-    if (vec.size() != size) {
-      throw std::runtime_error("Vector size does not match matrix dimensions.");
+// Matrix-vector multiplication for symmetric matrices
+std::vector<double> multiplySymmetric(const CCSmatrix &matrix, const std::vector<double> &vec) {
+    if (vec.size() != matrix.size) {
+        throw std::runtime_error("Vector size does not match matrix dimensions.");
     }
 
-    std::vector<double> result(size, 0.0);
+    std::vector<double> result(matrix.size, 0.0);
 
-    for (size_t j = 0; j < size; ++j) {
-      for (size_t index = JA[j]; index < JA[j + 1]; ++index) {
-        double val = V[index];
-        size_t i = IA[index];
+    for (size_t j = 0; j < matrix.size; ++j) {
+        for (size_t k = matrix.JA[j]; k < matrix.JA[j + 1]; ++k) {
+            double val = matrix.V[k];
+            size_t i = matrix.IA[k];
 
-        result[i] += val * vec[j];
+            result[i] += val * vec[j];
 
-        if (i != j) {
-          result[j] += val * vec[i];
+            if (i != j) {
+                result[j] += val * vec[i];
+            }
         }
-      }
     }
 
     return result;
-  }
-};
+}
 
 namespace program_options {
 
@@ -107,10 +107,10 @@ auto parse(int argc, char *argv[]) {
   return opts;
 }
 
-} // namespace program_options
+} 
 
 // Conjugate method
-std::vector<double> conjugateGradient(const CCSmatrix& A, const std::vector<double>& b, size_t maxIters, double tol) {
+std::vector<double> conjugateGradient(const CCSmatrix& A, const std::vector<double>& b, size_t maxIters) {
     size_t n = b.size();
     std::vector<double> x(n, 0.0); 
     std::vector<double> r = b;  
@@ -127,7 +127,7 @@ std::vector<double> conjugateGradient(const CCSmatrix& A, const std::vector<doub
     for (size_t k = 0; k < maxIters; ++k) {
 
         // 1. Step length alpha_k
-        std::vector<double> Ap = A.multiplySymmetric(p);
+        std::vector<double> Ap = multiplySymmetric(A, p);
         double alpha = rTr_old / std::inner_product(p.begin(), p.end(), Ap.begin(), 0.0);
 
         // 2. Approximate solution x_k
@@ -159,7 +159,7 @@ std::vector<double> conjugateGradient(const CCSmatrix& A, const std::vector<doub
         for (size_t i = 0; i < n; ++i)
             ek[i] = x_star[i] - x[i]; // e_k = x_star - x
 
-        std::vector<double> Aek = A.multiplySymmetric(ek);
+        std::vector<double> Aek = multiplySymmetric(A, ek);
         double err = sqrt(std::inner_product(ek.begin(), ek.end(), Aek.begin(), 0.0)); // sqrt(e_k^T * A * e_k)
         errors.push_back(err);
 
@@ -174,15 +174,14 @@ std::vector<double> conjugateGradient(const CCSmatrix& A, const std::vector<doub
         for (size_t i = 0; i < residuals.size(); ++i) {
             outFile << i + 1 << "\t" << residuals[i] << "\t" << errors[i] << "\n";
         }
-        std::cout << "Results successfully written to residuals.txt\n";
     }
     outFile.close();
     
     double lastResidual = residuals.back();
-    std::cout << "Computed residual-ratio: " << lastResidual << std::endl;
+    std::cout << "Last computed residual-ratio: " << lastResidual << std::endl;
 
     double lastError= errors.back();
-    std::cout << "Computed error in A-norm: " << lastError << std::endl;
+    std::cout << "Last computed error in A-norm: " << lastError << std::endl;
 
     return x; 
 }
@@ -203,10 +202,10 @@ int main(int argc, char *argv[]) try {
     // Test matrix-vector multiplication
     std::vector<double> x_star(mat.size, 1.0); // Example vector for multiplication
 
-    std::vector<double> b = mat.multiplySymmetric(x_star);
+    std::vector<double> b = multiplySymmetric(mat, x_star);
 
     // Solve the system using Conjugate Gradient method
-    std::vector<double> x = conjugateGradient(mat, b, opts.iters, 1e-6);
+    std::vector<double> x = conjugateGradient(mat, b, opts.iters);
 
     return EXIT_SUCCESS;
 } catch (std::exception &e) {
