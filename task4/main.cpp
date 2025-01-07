@@ -151,6 +151,9 @@ int main(int argc, char *argv[]) try {
     return max;
   };
 
+  //start timing
+  auto start_time = std::chrono::high_resolution_clock::now();
+
   auto x1 = init();
   auto x2 = x1;
   for (size_t iter = 0; iter <= opts.iters; ++iter) {
@@ -165,6 +168,13 @@ int main(int argc, char *argv[]) try {
 
   std::cout << "  norm2 = " << norm2(x2) << std::endl;
   std::cout << "normInf = " << normInf(x2) << std::endl;
+
+  auto end_time = std::chrono::high_resolution_clock::now();
+  std::chrono::duration<double> duration = end_time - start_time;
+
+  auto numThreads = omp_get_num_threads();
+  std::cout << "NumThreads: " << numThreads << " ";
+  std::cout << "Total runtime: " << duration.count() << " seconds\n";
 
   return EXIT_SUCCESS;
 } catch (std::exception &e) {
