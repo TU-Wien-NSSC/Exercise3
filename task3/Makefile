@@ -9,7 +9,7 @@ openmp:
 	$(CXX) $(CXXFLAGS) -fopenmp -o mcint $(SRC)
 
 parallelsinx:
-	OMP_NUM_THREADS=3 time ./mcint SINX 0 6.283185 1e6
+	OMP_NUM_THREADS=4 time ./mcint SINX 0 6.283185 1e8
 
 # test SINX func
 sinx: 
