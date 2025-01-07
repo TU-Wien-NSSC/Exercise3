@@ -12,6 +12,7 @@
 #include <string>
 #include <tuple>
 #include <vector>
+#include <omp.h>
 
 namespace program_options {
 
@@ -46,9 +47,12 @@ int main(int argc, char *argv[]) try {
   auto opts = program_options::parse(argc, argv);
   opts.print();
 
+ //#pragma omp parallel private(var1, var2) shared(var3)
+
   // initial guess (0.0) with fixed values in west (-100) and east (100)
   auto init = [N = opts.N, W = -100.0, E = 100.0]() -> auto {
     std::vector<double> res(N * N);
+    #pragma omp parallel for collapse(2) //each element processed indipendently
     for (size_t j = 0; j < N; ++j)
       for (size_t i = 0; i < N; ++i) {
         res[i + j * N] = 0.0;
@@ -66,6 +70,7 @@ int main(int argc, char *argv[]) try {
     auto h = 1.0 / (N - 1);
     auto h2 = h * h;
     // all interior points
+    #pragma omp parallel for collapse(2) //each grid cell updated independantly
     for (size_t j = 1; j < N - 1; ++j) {
       for (size_t i = 1; i < N - 1; ++i) {
         auto w = xold[(i - 1) + (j)*N];
@@ -82,6 +87,7 @@ int main(int argc, char *argv[]) try {
     // isolating south boundary
     {
       size_t j = 0;
+      #pragma omp parallel for //each cell updated independantly
       for (size_t i = 1; i < N - 1; ++i) {
         auto w = xold[(i - 1) + (j)*N];
         auto e = xold[(i + 1) + (j)*N];
@@ -97,6 +103,7 @@ int main(int argc, char *argv[]) try {
     // isolating north boundary
     {
       size_t j = N - 1;
+      #pragma omp parallel for //each cell updated independantly
       for (size_t i = 1; i < N - 1; ++i) {
         auto w = xold[(i - 1) + (j)*N];
         auto e = xold[(i + 1) + (j)*N];
