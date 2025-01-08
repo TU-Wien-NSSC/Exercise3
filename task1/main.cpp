@@ -1,25 +1,17 @@
 #include <algorithm>
-#include <chrono>
 #include <cmath>
-#include <cstddef>
 #include <fstream>
 #include <sstream>
-#include <iterator>
-#include <functional>
 #include <iostream>
-#include <stdexcept>
-#include <string>
-#include <tuple>
 #include <vector>
 #include <numeric>
-#include <cstdlib> 
+
 
 struct CCSMatrix {
     std::vector<double> V;
     std::vector<int> IA;
     std::vector<int> JA;
     size_t size;
-    size_t numEntries;
 
     void readMtxFile(const std::string &filename) {
         std::ifstream file(filename);
@@ -38,17 +30,17 @@ struct CCSMatrix {
         JA.resize(N + 1, 0);
 
         int currentRow, currentCol;
-        double nums;
+        double currentVal;
         int lastIndex = -1;
 
         // Read the entries
         while (L--) {
-            file >> currentRow >> currentCol >> nums;
+            file >> currentRow >> currentCol >> currentVal;
             currentRow--; // Adjusting to 0-based indexing
             currentCol--;
 
             // Fill the values and the rows vectors
-            V.push_back(nums);
+            V.push_back(currentVal);
             IA.push_back(currentRow);
 
             // Fill the columns vector
@@ -71,9 +63,9 @@ std::vector<double> multiplySymmetric(const CCSMatrix& matrix, const std::vector
 
     std::vector<double> result(matrix.size, 0.0); // Initialize result vector with zeros
 
-    for (int j = 0; j < matrix.size; ++j) {
-        for (int k = matrix.JA[j]; k < matrix.JA[j + 1]; ++k) {
-            int i = matrix.IA[k]; 
+    for (size_t j = 0; j < matrix.size; ++j) {
+        for (size_t k = matrix.JA[j]; k < matrix.JA[j + 1]; ++k) {
+            size_t i = matrix.IA[k]; 
 
             result[i] += matrix.V[k] * vec[j];
 
@@ -115,69 +107,71 @@ std::vector<double> conjugateGradient(const CCSMatrix& A, const std::vector<doub
     std::vector<double> x(n, 0.0); 
     std::vector<double> r = b;  
     std::vector<double> p = r;  
-    double r_norm, res;
+    double r_norm, res, err;
     double r0_norm = sqrt(std::inner_product(b.begin(), b.end(), b.begin(), 0.0));
     double rTr_old = std::inner_product(r.begin(), r.end(), r.begin(), 0.0);
-    std::vector<double> residuals;
-    std::vector<double> errors;
+    
 
-    for (size_t k = 0; k < maxIters; ++k) {
 
-        // 1. Step length alpha_k
-        std::vector<double> Ap = multiplySymmetric(A, p);
-        double alpha = rTr_old / std::inner_product(p.begin(), p.end(), Ap.begin(), 0.0);
-
-        // 2. Approximate solution x_k
-        for (size_t i = 0; i < n; ++i)
-            x[i] += alpha * p[i];
-
-        // 3. Residual r_k
-        for (size_t i = 0; i < n; ++i)
-            r[i] -= alpha * Ap[i];
-
-        // update residual vector
-        // Calculate the residual norm
-        double r_norm = sqrt(std::inner_product(r.begin(), r.end(), r.begin(), 0.0));
-        res = r_norm / r0_norm;
-        residuals.push_back(res);
-
-        // 4. Beta_k  (improvement this step)
-        double rTr_new = std::inner_product(r.begin(), r.end(), r.begin(), 0.0);
-        double beta = rTr_new / rTr_old;
-
-        // 5. Search direction p_k
-        for (size_t i = 0; i < n; ++i)
-            p[i] = r[i] + beta * p[i];
-
-        rTr_old = rTr_new;
-
-        // Compute error in A-norm
-        std::vector<double> ek(n);
-        for (size_t i = 0; i < n; ++i)
-            ek[i] = x_star[i] - x[i]; // e_k = x_star - x
-
-        std::vector<double> Aek = multiplySymmetric(A, ek);
-        double err = sqrt(std::inner_product(ek.begin(), ek.end(), Aek.begin(), 0.0)); // sqrt(e_k^T * A * e_k)
-        errors.push_back(err);
-    }
 
     // Write residuals and errors to a text file
-    std::ofstream outFile("residuals.txt");
+    std::ofstream outFile("residuals_and_errors.txt");
     if (!outFile) {
         std::cerr << "Error: Unable to open residuals.txt for writing.\n";
     } else {
-        outFile << "Iteration\tResidual\tError_A_norm\n";
-        for (size_t i = 0; i < residuals.size(); ++i) {
-            outFile << i + 1 << "\t" << residuals[i] << "\t" << errors[i] << "\n";
+
+            outFile << "Iteration\tResidual\tError_A_norm\n";
+            
+            for (size_t k = 0; k < maxIters; ++k) {
+
+            // 1. Step length alpha_k
+            std::vector<double> Ap = multiplySymmetric(A, p);
+            double alpha = rTr_old / std::inner_product(p.begin(), p.end(), Ap.begin(), 0.0);
+
+            // 2. Approximate solution x_k
+            for (size_t i = 0; i < n; ++i)
+                x[i] += alpha * p[i];
+
+            // 3. Residual r_k
+            for (size_t i = 0; i < n; ++i)
+                r[i] -= alpha * Ap[i];
+
+            // update residual vector
+            // Calculate the residual norm
+            double r_norm = sqrt(std::inner_product(r.begin(), r.end(), r.begin(), 0.0));
+            res = r_norm / r0_norm;
+
+            // 4. Beta_k  (improvement this step)
+            double rTr_new = std::inner_product(r.begin(), r.end(), r.begin(), 0.0);
+            double beta = rTr_new / rTr_old;
+
+            // 5. Search direction p_k
+            for (size_t i = 0; i < n; ++i)
+                p[i] = r[i] + beta * p[i];
+
+            rTr_old = rTr_new;
+
+            // Compute error in A-norm
+            std::vector<double> ek(n);
+            for (size_t i = 0; i < n; ++i)
+                ek[i] = x_star[i] - x[i]; // e_k = x_star - x
+
+            std::vector<double> Aek = multiplySymmetric(A, ek);
+            err = sqrt(std::inner_product(ek.begin(), ek.end(), Aek.begin(), 0.0)); // sqrt(e_k^T * A * e_k)
+
+            outFile << k << "\t" << res << "\t" << err << "\n";
+
         }
+        double lastResidual = res;
+        std::cout << "Last computed residual-ratio: " << lastResidual << std::endl;
+
+        double lastError= err;
+        std::cout << "Last computed error in A-norm: " << lastError << std::endl;
+
     }
     outFile.close();
     
-    double lastResidual = residuals.back();
-    std::cout << "Last computed residual-ratio: " << lastResidual << std::endl;
-
-    double lastError= errors.back();
-    std::cout << "Last computed error in A-norm: " << lastError << std::endl;
+    
 
     return x; 
 }
