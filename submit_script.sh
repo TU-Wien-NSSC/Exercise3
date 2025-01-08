@@ -8,7 +8,7 @@
 module purge > /dev/null 2>&1
 # Set OMP_NUM_THREADS to the same value as -c
 export OMP_NUM_THREADS=$SLURM_CPUS_PER_TASK
-export OMP_SCHEDULe="dynamic"
+export OMP_SCHEDULE="dynamic"
 
 echo "Number of threads: ${OMP_NUM_THREADS}"
 echo "Scheduling policy: ${OMP_SCHEDULE}"

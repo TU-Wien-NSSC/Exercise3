@@ -40,7 +40,7 @@ struct Options {
 };
 
 auto parse(int argc, char *argv[]) {
-  if (argc != 9 && argc != 6)
+  if (argc != 4)
     throw std::runtime_error("unexpected number of arguments");
   Options opts;
   opts.name = argv[1];
@@ -48,25 +48,15 @@ auto parse(int argc, char *argv[]) {
     throw std::runtime_error("invalid parameter for N");
   if (std::sscanf(argv[3], "%zu", &opts.iters) != 1 && opts.iters != 0)
     throw std::runtime_error("invalid parameter for iters");
-  if (std::sscanf(argv[4], "%lf", &opts.fix_west) != 1)
-    throw std::runtime_error("invalid value for fix_west");
-  if (std::sscanf(argv[5], "%lf", &opts.fix_east) != 1)
-    throw std::runtime_error("invalid value for fix_east");
-  if (argc == 6) {
-    opts.has_source = false;
-    opts.source_x = NAN;
-    opts.source_y = NAN;
-    opts.source_sigma = NAN;
-    return opts;
-  }
-  if (std::sscanf(argv[6], "%lf", &opts.source_x) != 1)
-    throw std::runtime_error("invalid value for source_x");
-  if (std::sscanf(argv[7], "%lf", &opts.source_y) != 1)
-    throw std::runtime_error("invalid value for source_y");
-  if (std::sscanf(argv[8], "%lf", &opts.source_sigma) != 1)
-    throw std::runtime_error("invalid value for source_sigma");
-  opts.has_source = true;
+
+  opts.fix_east = 100;
+  opts.fix_west = -100;
+  opts.has_source = false;
+  opts.source_x = NAN;
+  opts.source_y = NAN;
+  opts.source_sigma = NAN;
   return opts;
+
 }
 
 } // namespace program_options
@@ -211,6 +201,7 @@ void solver::System::solve() {
   auto start = std::chrono::steady_clock::now(); // Start time
 
   for (int l = 0; l < iters; l++) {
+    #pragma omp parallel for collapse(2)
     for (int k = 1; k <= (N-2); k++) {
       for (int j = 1; j <= (N-2); j++) {
         int i  = j + (k-1)*(N-2) - 1 ;
@@ -230,6 +221,7 @@ void solver::System::solve() {
       }
     }
     if (l < iters - 1){
+      #pragma omp single
       std::swap(uhOld, uhNew);
     }
   }
@@ -241,6 +233,7 @@ void solver::System::solve() {
 }
 
 void solver::System::resid() {
+  #pragma omp parallel for collapse(2)
   for (int k = 1; k <= (N-2); k++) {
     for (int j = 1; j <= (N-2); j++) {
       int i  = j + (k-1)*(N-2) - 1 ;
@@ -261,6 +254,7 @@ void solver::System::resid() {
 
 double solver::System::norm2() {
   double sum = 0.0;
+  #pragma omp parallel for reduction(+:sum)
   for (int i = 0; i < numEqs; i++) {
     sum += res[i]*res[i];
   }
@@ -269,9 +263,11 @@ double solver::System::norm2() {
 
 double solver::System::normInf() {
   double norm = 0.0;
+  #pragma omp parallel for reduction(max:norm) 
   for (int i = 0; i < numEqs; i++) {
-    if (norm < fabs(res[i])) {
-      norm = fabs(res[i]);
+    double absVal = fabs(res[i]);
+    if (norm < absVal) {
+      norm = absVal;
     }
   }
   return norm;

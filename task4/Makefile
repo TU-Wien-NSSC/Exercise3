@@ -38,11 +38,12 @@ solver: $(SRC)
 run: solver
 	./solver reference 2048 100000
 
+
 run_small: solver
 	./solver reference 128 1000
 
 run_test: solver
-	OMP_NUM_THREADS=$(NUM_THREADS) OMP_SCHEDULE=$(SCHEDULE_MODE) ./solver reference 100 10000
+	OMP_NUM_THREADS=$(NUM_THREADS) OMP_SCHEDULE=$(SCHEDULE_MODE) ./solver reference 128 1000
 
 plot: plot.py
 	python3 plot.py

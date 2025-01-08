@@ -135,6 +135,7 @@ int main(int argc, char *argv[]) try {
   // 2 norm
   auto norm2 = [N = opts.N](const auto &vec) -> auto {
     double sum = 0.0;
+    #pragma omp parallel for reduction(+:sum) collapse(2) //thread-save accumulation of sum
     for (size_t j = 0; j < N; ++j)
       for (size_t i = 1; i < (N - 1); ++i)
         sum += vec[i + j * N] * vec[i + j * N];
@@ -145,6 +146,7 @@ int main(int argc, char *argv[]) try {
   // Inf norm
   auto normInf = [N = opts.N](const auto &vec) -> auto {
     double max = 0.0;
+    #pragma omp parallel for reduction(max:max) collapse(2) //max value across all threads
     for (size_t j = 0; j < N; ++j)
       for (size_t i = 1; i < (N - 1); ++i)
         max = std::fabs(vec[i + j * N]) > max ? std::fabs(vec[i + j * N]) : max;
@@ -172,9 +174,10 @@ int main(int argc, char *argv[]) try {
   auto end_time = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> duration = end_time - start_time;
 
-  auto numThreads = omp_get_num_threads();
+  auto numThreads = omp_get_max_threads();
   std::cout << "NumThreads: " << numThreads << " ";
   std::cout << "Total runtime: " << duration.count() << " seconds\n";
+  std::cout << "--------------------\n";
 
   return EXIT_SUCCESS;
 } catch (std::exception &e) {
