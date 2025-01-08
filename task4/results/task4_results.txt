@@ -1,0 +1,112 @@
+Running with 1 threads...
+  Testing schedule policy: static
+./solver reference 2048 100000 1
+4.25701e+06
+4061.59
+1329.32
+  Testing schedule policy: static,1
+./solver reference 2048 100000 2
+4.25701e+06
+4061.59
+1329.83
+  Testing schedule policy: dynamic
+./solver reference 2048 100000 3
+4.25701e+06
+4061.59
+1322.52
+Running with 2 threads...
+  Testing schedule policy: static
+./solver reference 2048 100000 1
+4.25701e+06
+4061.59
+910.119
+  Testing schedule policy: static,1
+./solver reference 2048 100000 2
+4.25701e+06
+4061.59
+656.149
+  Testing schedule policy: dynamic
+./solver reference 2048 100000 3
+4.25701e+06
+4061.59
+654.804
+Running with 4 threads...
+  Testing schedule policy: static
+./solver reference 2048 100000 1
+4.25701e+06
+4061.59
+454.374
+  Testing schedule policy: static,1
+./solver reference 2048 100000 2
+4.25701e+06
+4061.59
+371.505
+  Testing schedule policy: dynamic
+./solver reference 2048 100000 3
+4.25701e+06
+4061.59
+355.7
+Running with 8 threads...
+  Testing schedule policy: static
+./solver reference 2048 100000 1
+4.25701e+06
+4061.59
+317.856
+  Testing schedule policy: static,1
+./solver reference 2048 100000 2
+4.25701e+06
+4061.59
+319.051
+  Testing schedule policy: dynamic
+./solver reference 2048 100000 3
+4.25701e+06
+4061.59
+319.445
+Running with 10 threads...
+  Testing schedule policy: static
+./solver reference 2048 100000 1
+4.25701e+06
+4061.59
+265.351
+  Testing schedule policy: static,1
+./solver reference 2048 100000 2
+4.25701e+06
+4061.59
+268.04
+  Testing schedule policy: dynamic
+./solver reference 2048 100000 3
+4.25701e+06
+4061.59
+277.919
+Running with 20 threads...
+  Testing schedule policy: static
+./solver reference 2048 100000 1
+4.25701e+06
+4061.59
+154.719
+  Testing schedule policy: static,1
+./solver reference 2048 100000 2
+4.25701e+06
+4061.59
+142.55
+  Testing schedule policy: dynamic
+./solver reference 2048 100000 3
+4.25701e+06
+4061.59
+163.834
+Running with 40 threads...
+  Testing schedule policy: static
+./solver reference 2048 100000 1
+4.25701e+06
+4061.59
+134.482
+  Testing schedule policy: static,1
+./solver reference 2048 100000 2
+4.25701e+06
+4061.59
+127.528
+  Testing schedule policy: dynamic
+./solver reference 2048 100000 3
+4.25701e+06
+4061.59
+133.025

@@ -131,9 +131,9 @@ int main(int argc, char *argv[]) try {
   system->solve();
   system->resid();
   if (debug) system->print();
-  std::cout << system->norm2() << std::endl;
-  std::cout << system->normInf() << std::endl;
-  std::cout << system->runtime << std::endl;
+  //std::cout << system->norm2() << std::endl;
+  //std::cout << system->normInf() << std::endl;
+  std::cout << "Runtime: " << system->runtime << std::endl;
   system->write();
 
   return EXIT_SUCCESS;

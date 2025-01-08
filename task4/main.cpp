@@ -168,15 +168,15 @@ int main(int argc, char *argv[]) try {
   write(x2);
   jacobi_iter(x1, x2, true);
 
-  std::cout << "  norm2 = " << norm2(x2) << std::endl;
-  std::cout << "normInf = " << normInf(x2) << std::endl;
+  //std::cout << "  norm2 = " << norm2(x2) << std::endl;
+  //std::cout << "normInf = " << normInf(x2) << std::endl;
 
   auto end_time = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> duration = end_time - start_time;
 
   auto numThreads = omp_get_max_threads();
-  std::cout << "NumThreads: " << numThreads << " ";
-  std::cout << "Total runtime: " << duration.count() << " seconds\n";
+  std::cout << "NumThreads: " << numThreads << "\n";
+  std::cout << "TotalRuntime: " << duration.count() << " seconds\n";
   std::cout << "--------------------\n";
 
   return EXIT_SUCCESS;

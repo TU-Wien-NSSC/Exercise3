@@ -1,32 +1,28 @@
-#!/bin/bash
-#SBATCH --time=00:35:00
-#SBATCH --job-name=solver_test
-#SBATCH --output=solver_output_%x.txt  # Output file based on the scheduling policy name
-#SBATCH -c 40  # Reserve 40 CPUs for the entire job
+#! /bin/bash
+# Number of cores (up to 40)
+#SBATCH -c 40
+# Time
+#SBATCH --time=00:59:00
+# Output file for results
+#SBATCH --output=task4_results_%x.txt  # Output file based on the scheduling policy name
+# Clear the environment
+module purge > /dev/null 2>&1
 
-THREAD_COUNTS=(1 2 4 8 10 20 40)
-SCHEDULE="static,1"
+# Parameters
+RESOLUTION=2048
+ITERATIONS=100000
+NAME=reference
+SCHEDULE_NAME="static,1"
 
-# Output file
-OUTPUT_FILE="solver_output_static,1.txt"
+# Loop through thread counts
+for THREADS in 1 2 4 8 10 20 40; do
+    export OMP_NUM_THREADS=$THREADS
+    export OMP_SCHEDULE="${SCHEDULE_NAME}"
 
+    # Append thread and policy information to the result file
+    echo "Threads: $THREADS" >> task4_results_${SCHEDULE_NAME}.txt
+    echo "Policy: $SCHEDULE_NAME" >> task4_results_${SCHEDULE_NAME}.txt
 
-# Write headers to each output file
-echo "Results for scheduling policy: static,1" > $OUTPUT_FILE
-echo "Threads,Total Runtime (s)" >> $OUTPUT_FILE
-
-# Loop through each thread count
-for THREADS in "${THREAD_COUNTS[@]}"; do
-  # Set OpenMP environment variables
-  export OMP_NUM_THREADS=${THREADS}
-  export OMP_SCHEDULE="${SCHEDULE}"
-
-  # Display debug information
-  echo "Running with ${THREADS} threads and ${SCHEDULE} scheduling policy"
-
-  # Run the solver program and capture runtime
-  RUNTIME=$(./solver reference 2048 100000 | grep "Total runtime" | awk '{print $3}')
-
-  echo "${THREADS},${RUNTIME}" >> $OUTPUT_FILE_STATIC
-
+    # Run the solver and redirect its output to the result file
+    ./solver $NAME $RESOLUTION $ITERATIONS >> task4_results_${SCHEDULE_NAME}.txt
 done
