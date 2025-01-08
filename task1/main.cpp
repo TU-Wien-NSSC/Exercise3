@@ -159,7 +159,7 @@ std::vector<double> conjugateGradient(const CCSMatrix& A, const std::vector<doub
             std::vector<double> Aek = multiplySymmetric(A, ek);
             err = sqrt(std::inner_product(ek.begin(), ek.end(), Aek.begin(), 0.0)); // sqrt(e_k^T * A * e_k)
 
-            outFile << k << "\t" << res << "\t" << err << "\n";
+            outFile << k + 1 << "\t" << res << "\t" << err << "\n";
 
         }
         double lastResidual = res;
