@@ -153,10 +153,10 @@ int main(int argc, char *argv[]) try {
   std::vector<ThreadSeed> seedBank(numThreads);
   
   // Shared RNG to generate the seeds of each thread
-  std::random_device rd;
-  unsigned int rd_seed = rd();
-  std::mt19937_64 sharedGen(rd_seed);
-  // std::mt19937_64 sharedGen(12347308);
+  // std::random_device rd;
+  // unsigned int seed = rd();
+  unsigned int seed = 12347308;
+  std::mt19937_64 sharedGen(12347308);
   std::uniform_int_distribution<unsigned int> dis;
   for (int i = 0; i < numThreads; i++) {
     seedBank[i].seed = dis(sharedGen);
