@@ -166,14 +166,14 @@ int main(int argc, char *argv[]) try {
 
 
  
-  auto integrator_m = Integrator();
-  integrator_m.setup(opts);
-  //double time_s = omp_get_wtime();
-  struct timeval start, end;
-  //gettimeofday(&start, NULL);
-  std::cout<< integrator_m.integrate() << std::endl;
-  //gettimeofday(&end, NULL);
-  //delta = ((end.tv_sec-start.tv_sec)*1000000u + end.tv_sec-start.tv_sec)/1e6 << std::endl;
+  // auto integrator_m = Integrator();
+  // integrator_m.setup(opts);
+  // double time_s = omp_get_wtime();
+  // struct timeval start, end;
+  // gettimeofday(&start, NULL);
+  // std::cout<< integrator_m.integrate() << std::endl;
+  // gettimeofday(&end, NULL);
+  // delta = ((end.tv_sec-start.tv_sec)*1000000u + end.tv_sec-start.tv_sec)/1e6 << std::endl;
   // double time_e = omp_get_wtime();
   // std::cout << "time:" << (time_e-time_s)*1e3 << std::endl;
     
