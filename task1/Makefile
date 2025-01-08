@@ -1,12 +1,12 @@
 CXX = g++
 CXXFLAGS = -std=c++17
-SRC = mainSmart.cpp
+SRC = main.cpp
 
 all: 
 	$(CXX) $(CXXFLAGS) -o cg $(SRC)
 
 run: 
-	./cg bcsstk13.mtx 100000
+	./cg bcsstk13.mtx 10000
 
 plot: plot_Ex1.py
 	python3 plot_Ex1.py
