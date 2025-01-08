@@ -16,12 +16,6 @@
 
 const double PI = 3.141592653589793238463;
 
-// Structure to hold seed with proper cache line alignment
-struct alignas(64) ThreadSeed {
-  unsigned int seed;
-  char padding[60];
-};
-
 namespace program_options {
 
 struct Options {
@@ -143,29 +137,6 @@ int main(int argc, char *argv[]) try {
   auto opts = program_options::parse(argc, argv);
   opts.print();
 
-  // Get maximum number of available threads
-  int numThreads = omp_get_max_threads();
-
-  // Set the number of threads
-  omp_set_num_threads(numThreads);
-
-  // Initialization of seed "bank" (one seed per thread)
-  std::vector<ThreadSeed> seedBank(numThreads);
-  
-  // Shared RNG to generate the seeds of each thread
-  std::random_device rd;
-  unsigned int rd_seed = rd();
-  std::mt19937_64 sharedGen(rd_seed);
-  // std::mt19937_64 sharedGen(12347308);
-  std::uniform_int_distribution<unsigned int> dis;
-  for (int i = 0; i < numThreads; i++) {
-    seedBank[i].seed = dis(sharedGen);
-    std::cout << seedBank[i].seed << std::endl;
-  }
-
-
-
- 
   auto integrator_m = Integrator();
   integrator_m.setup(opts);
   //double time_s = omp_get_wtime();
