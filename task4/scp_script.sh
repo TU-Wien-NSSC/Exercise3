@@ -5,7 +5,7 @@ REMOTE_SERVER="nssc_e11801674@tcad30.iue.tuwien.ac.at"
 REMOTE_DIR="."  # Assumes the files are in the current directory on the remote machine
 
 # Define the output file pattern
-THREAD_COUNTS=(1 2 3 4 8 10 20 40)
+THREAD_COUNTS=(1 2 4 8 10 20 40)
 SCHEDULE_POLICIES=("static" "static,1" "dynamic")
 
 # Loop through each combination of thread counts and scheduling policies

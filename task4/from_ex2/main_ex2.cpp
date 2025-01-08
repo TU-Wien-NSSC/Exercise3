@@ -181,6 +181,7 @@ void solver::System::build() {
     double twoSigmaSquared = 2*sigmaSrc*sigmaSrc;
     // We rescale the system by h^2, i.e. multiply Au=b by h^2, to avoid that operation in the solver (when calculating the residual, we'll need to rescale back)
     double constantTerm = h*h/(PI*twoSigmaSquared);
+    #pragma omp parallel for collapse(2) //independant loops
     for(k = 1; k <= N-2; k++) {
       for (j = 1; j <= N-2; j++) {
         i = j + (k-1)*(N-2) - 1;
@@ -201,7 +202,7 @@ void solver::System::solve() {
   auto start = std::chrono::steady_clock::now(); // Start time
 
   for (int l = 0; l < iters; l++) {
-    #pragma omp parallel for collapse(2)
+    #pragma omp parallel for collapse(2) //only two independent loops
     for (int k = 1; k <= (N-2); k++) {
       for (int j = 1; j <= (N-2); j++) {
         int i  = j + (k-1)*(N-2) - 1 ;
@@ -221,7 +222,7 @@ void solver::System::solve() {
       }
     }
     if (l < iters - 1){
-      #pragma omp single
+      #pragma omp single //cannot be executed parallel
       std::swap(uhOld, uhNew);
     }
   }
@@ -233,7 +234,7 @@ void solver::System::solve() {
 }
 
 void solver::System::resid() {
-  #pragma omp parallel for collapse(2)
+  #pragma omp parallel for collapse(2) //independant loops
   for (int k = 1; k <= (N-2); k++) {
     for (int j = 1; j <= (N-2); j++) {
       int i  = j + (k-1)*(N-2) - 1 ;
@@ -254,7 +255,7 @@ void solver::System::resid() {
 
 double solver::System::norm2() {
   double sum = 0.0;
-  #pragma omp parallel for reduction(+:sum)
+  #pragma omp parallel for reduction(+:sum) //sum over all threads
   for (int i = 0; i < numEqs; i++) {
     sum += res[i]*res[i];
   }
@@ -263,7 +264,7 @@ double solver::System::norm2() {
 
 double solver::System::normInf() {
   double norm = 0.0;
-  #pragma omp parallel for reduction(max:norm) 
+  #pragma omp parallel for reduction(max:norm) // max of all threads
   for (int i = 0; i < numEqs; i++) {
     double absVal = fabs(res[i]);
     if (norm < absVal) {
