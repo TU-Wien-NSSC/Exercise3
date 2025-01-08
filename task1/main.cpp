@@ -12,73 +12,73 @@
 #include <tuple>
 #include <vector>
 #include <numeric>
+#include <cstdlib> 
 
-struct CCSmatrix {
-  std::vector<double> V;
-  std::vector<size_t> IA;
-  std::vector<size_t> JA;
-  size_t size;
-  size_t numEntries;
+struct CCSMatrix {
+    std::vector<double> V;
+    std::vector<int> IA;
+    std::vector<int> JA;
+    size_t size;
+    size_t numEntries;
 
-  void readMtxFile(std::ifstream &file) { 
-    int lineNum = 0;
-    std::string line;
-    int currentCol = 0;
-    
-    while (getline(file, line)) {
-      if (line[0] != '%') { 
-        std::istringstream iss(line);
-        std::vector<double> nums;
-        double value;
-        while (iss >> value) {
-          nums.push_back(value);
+    void readMtxFile(const std::string &filename) {
+        std::ifstream file(filename);
+
+        if (!file.is_open()) {
+            throw std::runtime_error("Error: Unable to open file.");
         }
 
-        if (lineNum != 0) {
-            size_t currentRow = (nums[0] - 1); 
-            size_t currentCol = (nums[1] - 1); 
+        std::string line;
+        std::getline(file, line); 
+        int M, N, L; 
+        file >> N >> M >> L;
+        size = N;
 
-            if (currentRow < currentCol) {
-                throw std::runtime_error("Matrix contains entries outside the lower triangular part and may not be symmetric");
-            }
+        // Initialize column pointers
+        JA.resize(N + 1, 0);
 
-            IA[lineNum - 1] = currentRow;
-            if (currentCol != nums[1]) {
-                JA[currentCol] = lineNum - 1;
-                currentCol++;
+        int currentRow, currentCol;
+        double nums;
+        int lastIndex = -1;
+
+        // Read the entries
+        while (L--) {
+            file >> currentRow >> currentCol >> nums;
+            currentRow--; // Adjusting to 0-based indexing
+            currentCol--;
+
+            // Fill the values and the rows vectors
+            V.push_back(nums);
+            IA.push_back(currentRow);
+
+            // Fill the columns vector
+            if (currentCol != lastIndex) {
+                JA[currentCol] = V.size() - 1;
+                lastIndex = currentCol;
             }
-            V[lineNum - 1] = nums[2];
-        } else {
-            size = nums[0];
-            numEntries = nums[2];
-            V.resize(numEntries);
-            IA.resize(numEntries);
-            JA.resize(size + 1);
         }
-        nums.clear();
-        lineNum++;
-      }
+
+        // Finalize column pointers
+        JA.back() = V.size();
     }
-  }
 };
 
 // Matrix-vector multiplication for symmetric matrices
-std::vector<double> multiplySymmetric(const CCSmatrix &matrix, const std::vector<double> &vec) {
+std::vector<double> multiplySymmetric(const CCSMatrix& matrix, const std::vector<double>& vec) {
     if (vec.size() != matrix.size) {
         throw std::runtime_error("Vector size does not match matrix dimensions.");
     }
 
-    std::vector<double> result(matrix.size, 0.0);
+    std::vector<double> result(matrix.size, 0.0); // Initialize result vector with zeros
 
-    for (size_t j = 0; j < matrix.size; ++j) {
-        for (size_t k = matrix.JA[j]; k < matrix.JA[j + 1]; ++k) {
-            double val = matrix.V[k];
-            size_t i = matrix.IA[k];
+    for (int j = 0; j < matrix.size; ++j) {
+        for (int k = matrix.JA[j]; k < matrix.JA[j + 1]; ++k) {
+            int i = matrix.IA[k]; 
 
-            result[i] += val * vec[j];
+            result[i] += matrix.V[k] * vec[j];
 
             if (i != j) {
-                result[j] += val * vec[i];
+                result[j] += matrix.V[k] * vec[i];
             }
         }
     }
@@ -110,7 +110,7 @@ auto parse(int argc, char *argv[]) {
 } 
 
 // Conjugate method
-std::vector<double> conjugateGradient(const CCSmatrix& A, const std::vector<double>& b, size_t maxIters) {
+std::vector<double> conjugateGradient(const CCSMatrix& A, const std::vector<double>& b, const std::vector<double>& x_star, size_t maxIters) {
     size_t n = b.size();
     std::vector<double> x(n, 0.0); 
     std::vector<double> r = b;  
@@ -119,10 +119,7 @@ std::vector<double> conjugateGradient(const CCSmatrix& A, const std::vector<doub
     double r0_norm = sqrt(std::inner_product(b.begin(), b.end(), b.begin(), 0.0));
     double rTr_old = std::inner_product(r.begin(), r.end(), r.begin(), 0.0);
     std::vector<double> residuals;
-
-    std::vector<double> x_star(n, 1.0);
     std::vector<double> errors;
-
 
     for (size_t k = 0; k < maxIters; ++k) {
 
@@ -142,7 +139,7 @@ std::vector<double> conjugateGradient(const CCSmatrix& A, const std::vector<doub
         // Calculate the residual norm
         double r_norm = sqrt(std::inner_product(r.begin(), r.end(), r.begin(), 0.0));
         res = r_norm / r0_norm;
-        residuals.push_back (res);
+        residuals.push_back(res);
 
         // 4. Beta_k  (improvement this step)
         double rTr_new = std::inner_product(r.begin(), r.end(), r.begin(), 0.0);
@@ -162,7 +159,6 @@ std::vector<double> conjugateGradient(const CCSmatrix& A, const std::vector<doub
         std::vector<double> Aek = multiplySymmetric(A, ek);
         double err = sqrt(std::inner_product(ek.begin(), ek.end(), Aek.begin(), 0.0)); // sqrt(e_k^T * A * e_k)
         errors.push_back(err);
-
     }
 
     // Write residuals and errors to a text file
@@ -186,29 +182,22 @@ std::vector<double> conjugateGradient(const CCSmatrix& A, const std::vector<doub
     return x; 
 }
 
-int main(int argc, char *argv[]) try {
+// Main function to test the CCS function (Takes as input the name of the .mtx file and the number of iteration for the CG method)
+int main(int argc, char* argv[]) {
     // Parse program arguments
     auto opts = program_options::parse(argc, argv);
     opts.print();
 
-    // Open and read the matrix file
-    auto mat = CCSmatrix();
-    std::ifstream matrixFile(opts.filename);
-    if (!matrixFile.is_open()) {
-        throw std::runtime_error("Unable to open the specified matrix file.");
-    }
-    mat.readMtxFile(matrixFile);
+    // Create the matrix and read from file
+    CCSMatrix mat;
+    mat.readMtxFile(opts.filename);
 
     // Test matrix-vector multiplication
-    std::vector<double> x_star(mat.size, 1.0); // Example vector for multiplication
-
+    std::vector<double> x_star(mat.size, 1.0);    
     std::vector<double> b = multiplySymmetric(mat, x_star);
 
     // Solve the system using Conjugate Gradient method
-    std::vector<double> x = conjugateGradient(mat, b, opts.iters);
+    std::vector<double> x = conjugateGradient(mat, b, x_star, opts.iters);
 
-    return EXIT_SUCCESS;
-} catch (std::exception &e) {
-    std::cout << e.what() << std::endl;
-    return EXIT_FAILURE;
+    return 0;
 }
