@@ -148,7 +148,7 @@ int main(int argc, char *argv[]) try {
   double mean = sum/opts.samples;
   if(debug) printf("mean = %f\n", mean);
   double final_integral = mean*(opts.x_max-opts.x_min);
-  printf("Result:\t%f\n", final_integral);
+  printf("Integral:\t%f\n", final_integral);
 
   // End time measurement
   #ifdef _OPENMP
@@ -160,9 +160,9 @@ int main(int argc, char *argv[]) try {
   #endif
 
   #ifdef _OPENMP
-    printf("Time:\t%f\n",elapsed_omp_time);
+    printf("Runtime:\t%f\n",elapsed_omp_time);
   #else
-    printf("Time:\t%f\n",elapsed_time.count());
+    printf("Runtime:\t%f\n",elapsed_time.count());
   #endif
 
   printf("Threads:\t%d\n", num_threads);
