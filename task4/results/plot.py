@@ -1,48 +1,63 @@
 import csv
 import matplotlib.pyplot as plt
 
-file_name = "main"
-#file_name = "main_ex2"
+#change following to create different plot
+
+#file_name = "main"
+file_name = "main_ex2"
 
 file_path = f"results_{file_name}.txt"  
-
-# Initialize a dictionary to store data by policy
 data = {"dynamic": [], "static": [], "static_1": []}
 
-# Read the CSV file
+
 with open(file_path, newline='') as file:
     reader = csv.reader(file)
-    next(reader)  # Skip the header row
+    next(reader)  #skip first row
     for row in reader:
         threads, policy, runtime = int(row[0]), row[1], float(row[2])
         data[policy].append((threads, runtime))
 
-# Calculate speedup for each policy
+
 speedup_data = {}
 for policy in data:
-    # Get the runtime for 1 thread (serial execution)
+    #get the runtime for 1 thread (serial execution)
     serial_runtime = next(runtime for threads, runtime in data[policy] if threads == 1)
     
-    # Calculate speedup for each entry
+    #calculate speedup for each entry relative to the runtime with one thread
     speedup_data[policy] = [
         (threads, serial_runtime / runtime) for threads, runtime in data[policy]
     ]
 
-# Plot the speedup for each policy
-plt.figure(figsize=(8, 6))
+
+#Speedup Plot
+plt.figure(figsize=(10, 7))
 for policy, speedups in speedup_data.items():
-    # Separate the thread counts and speedup values
     threads = [entry[0] for entry in speedups]
     speedup = [entry[1] for entry in speedups]
     plt.plot(threads, speedup, marker="o", label=policy.replace("_", ","))
 
-# Add labels, legend, and title
 plt.xlabel("Number of Threads")
 plt.ylabel("Speedup")
-plt.title("Speedup vs Threads for Different Scheduling Policies")
+plt.title("Speedup (relative to serial runtime) vs Threads")
 plt.legend(title="Scheduling Policy")
 plt.grid(True)
 
-# Save and show the plot
 plt.savefig(f"speedup_plot_{file_name}.png")
+plt.show()
+
+
+#Runtime Plot
+plt.figure(figsize=(10, 7))
+for policy, runtimes in data.items():
+    threads = [entry[0] for entry in runtimes]
+    runtime = [entry[1] for entry in runtimes]
+    plt.plot(threads, runtime, marker="o", label=policy.replace("_", ","))
+
+plt.xlabel("Number of Threads")
+plt.ylabel("Runtime (seconds)")
+plt.title("Runtime vs Threads")
+plt.legend(title="Scheduling Policy")
+plt.grid(True)
+
+plt.savefig(f"runtime_plot_{file_name}.png")
 plt.show()

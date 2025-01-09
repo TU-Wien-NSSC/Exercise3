@@ -1,7 +1,6 @@
 import os
 import re
 
-# Define file patterns and output file names
 policies = ["dynamic", "static", "static,1"]
 main_files = {policy: f"task4_results_{policy}_main.txt" for policy in policies}
 main_ex2_files = {policy: f"task4_results_{policy}_main_ex2.txt" for policy in policies}
@@ -9,7 +8,7 @@ main_ex2_files = {policy: f"task4_results_{policy}_main_ex2.txt" for policy in p
 output_main = "results_main.txt"
 output_main_ex2 = "results_main_ex2.txt"
 
-# Function to extract runtime from a file
+#get runtime from file
 def extract_runtime(file_path, pattern):
     data = []
     if os.path.exists(file_path):
@@ -19,14 +18,14 @@ def extract_runtime(file_path, pattern):
             for threads, runtime in matches:
                 data.append((int(threads), float(runtime)))
     else:
-        print(f"File not found: {file_path}")  # Debugging: Indicate missing file
+        print(f"File not found: {file_path}")
     return data
 
-# Regular expressions to match the runtime information
+#pattern for runtime extraction
 main_pattern = re.compile(r"Threads:\s+(\d+).*?TotalRuntime:\s+([\d.]+)\s+seconds", re.DOTALL)
 main_ex2_pattern = re.compile(r"Threads:\s+(\d+).*?Runtime:\s+([\d.]+)", re.DOTALL)
 
-# Collect and save results for main files
+#save results for main files
 with open(output_main, "w") as f_main:
     f_main.write("Threads,Policy,Runtime\n")
     for policy, file_path in main_files.items():
@@ -36,7 +35,7 @@ with open(output_main, "w") as f_main:
                 policy = "static_1"
             f_main.write(f"{threads},{policy},{runtime}\n")
 
-# Collect and save results for main_ex2 files
+# save results for main_ex2 files
 with open(output_main_ex2, "w") as f_main_ex2:
     f_main_ex2.write("Threads,Policy,Runtime\n")
     for policy, file_path in main_ex2_files.items():
