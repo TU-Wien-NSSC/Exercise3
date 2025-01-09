@@ -3,8 +3,8 @@ import matplotlib.pyplot as plt
 
 #change following to create different plot
 
-#file_name = "main"
-file_name = "main_ex2"
+file_name = "main"
+#file_name = "main_ex2"
 
 file_path = f"results_{file_name}.txt"  
 data = {"dynamic": [], "static": [], "static_1": []}
