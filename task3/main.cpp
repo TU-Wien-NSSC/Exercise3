@@ -1,5 +1,3 @@
-// g++ main.cpp -std=c++17 -O3 -march=native -ffast-math -o solver
-
 #include <cmath>
 #include <cstddef>
 #include <iostream>
@@ -7,14 +5,12 @@
 #include <stdexcept>
 #include <string>
 #include <unordered_set>
-#include <ctime>
-#include <random>
-#include <omp.h>
 #include <chrono>
-#include <time.h>
-//#include <functional>
-
-const double PI = 3.141592653589793238463;
+#include <random>
+#ifdef _OPENMP
+  #include <omp.h>
+#endif
+#include <chrono>
 
 // Structure to hold seed with proper cache line alignment
 struct alignas(64) ThreadSeed {
@@ -68,115 +64,109 @@ auto parse(int argc, char *argv[]) {
 
 } // namespace program_options
 
-struct Integrator {
-  double x_min, x_max;
-  int samples;
-  std::string func;
-  std::mt19937_64 mt;
-  //std::function<double(double)> selectedFunc;
-  double (*selectedFunc)(double) = nullptr;
+double sinx(double x) {
+  return sin(x);
+}
 
-  static double sinx(double x){
-    return sin(x);
-  }
+double cos2xinv(double x) {
+  double cos1qx = cos(1/x);
+  return cos1qx*cos1qx;
+}
 
-  static double cos2xinv(double x){
-    double result = cos(1/x)*cos(1/x);
-    return result;
-  }
-
-  static double x4m5(double x){
-    double result = 5*x*x*x*x;
-    return result;
-  }
-
-  void setup(program_options::Options& options){
-    func = options.func;
-    if(func == "SINX") {
-      selectedFunc = sinx;
-    }
-    else if(func == "COS2XINV")
-      selectedFunc = cos2xinv;
-    else if(func == "X4M5")
-      selectedFunc = x4m5;
-      
-    x_min = options.x_min;
-    x_max = options.x_max;
-    samples = options.samples;
-  }
-
-  
-
-  double scaler(double x){
-    double result = x_min + (x_max-x_min)/mt.max()*x;
-    return result;
-  }
-
-  double integrate(){
-    mt.seed(time(nullptr));
-    double sum = 0;
-  
-    #pragma omp parallel shared (sum)
-    {
-    std::cout << "thread id:" << omp_get_thread_num() << std::endl;
-    #pragma omp parallel for reduction(+:sum)
-      for(int i = 0; i < samples; i++){
-        double x = scaler(mt());
-        sum += selectedFunc(x); 
-      }
-    }
-    sum = sum/samples*(x_max-x_min);
-    return sum;
-  }
-
-  
-};
-
-
+double x4m5(double x) {
+  return 5*x*x*x*x;
+}
 
 int main(int argc, char *argv[]) try {
-  //int numThreads = omp_get_max_threads();
-  //omp_set_num_threads(numThreads);
-  std::cout << "max threads: " << omp_get_max_threads()<< std::endl;
-  std::cout << "num threads: " << omp_get_num_threads()<< std::endl;
   bool debug = false;
   auto opts = program_options::parse(argc, argv);
-  opts.print();
+  if(debug) opts.print();
+  
+  // Set selected function from opts
+  double (*selectedFunc)(double) = nullptr;
+  if (opts.func == "SINX")
+    selectedFunc = sinx;
+  else if (opts.func == "COS2XINV")
+    selectedFunc = cos2xinv;
+  else
+    selectedFunc = x4m5;
 
   // Get maximum number of available threads
-  int numThreads = omp_get_max_threads();
-
-  // Set the number of threads
-  omp_set_num_threads(numThreads);
+  int num_threads = 1;
+  #ifdef _OPENMP
+    num_threads = omp_get_max_threads();
+    // Set the number of threads
+    omp_set_num_threads(num_threads);
+  #endif
 
   // Initialization of seed "bank" (one seed per thread)
-  std::vector<ThreadSeed> seedBank(numThreads);
+  std::vector<ThreadSeed> seed_bank(num_threads);
   
-  // Shared RNG to generate the seeds of each thread
+  // SHARED RNG to generate the seeds of each thread
   // std::random_device rd;
   // unsigned int seed = rd();
-  unsigned int seed = 12347308;
-  std::mt19937_64 sharedGen(12347308);
-  std::uniform_int_distribution<unsigned int> dis;
-  for (int i = 0; i < numThreads; i++) {
-    seedBank[i].seed = dis(sharedGen);
-    std::cout << seedBank[i].seed << std::endl;
+  unsigned int seed = 12347308; // fixed seed
+  std::mt19937_64 shared_gen(seed);
+  std::uniform_int_distribution<unsigned int> int_dis;
+  for (int i = 0; i < num_threads; i++) {
+    seed_bank[i].seed = int_dis(shared_gen);
   }
 
+  double sum = 0.0;
+  
+  // Start time measurement
+  
+  #ifdef _OPENMP
+    double start_omp_time = omp_get_wtime();
+  #else
+    auto start_time = std::chrono::high_resolution_clock::now();
+  #endif
+  
+  #pragma omp parallel reduction(+:sum)
+  {
+    int thread_num = 0;
+    #ifdef _OPENMP
+      thread_num = omp_get_thread_num();
+    #endif
 
-
- 
-  // auto integrator_m = Integrator();
-  // integrator_m.setup(opts);
-  // double time_s = omp_get_wtime();
-  // struct timeval start, end;
-  // gettimeofday(&start, NULL);
-  // std::cout<< integrator_m.integrate() << std::endl;
-  // gettimeofday(&end, NULL);
-  // delta = ((end.tv_sec-start.tv_sec)*1000000u + end.tv_sec-start.tv_sec)/1e6 << std::endl;
-  // double time_e = omp_get_wtime();
-  // std::cout << "time:" << (time_e-time_s)*1e3 << std::endl;
+    std::mt19937_64 local_gen(seed_bank[thread_num].seed);
+    std::uniform_real_distribution<double> real_dist(opts.x_min, opts.x_max);
     
+    int count = 0; // Used calculate the integral approximation inside each thread
+
+    #pragma omp for
+    for(int i = 0; i < opts.samples; i++) {
+      double x = real_dist(local_gen);
+      double y = selectedFunc(x);
+      sum += y;
+      count++;
+    }
+    double thread_integral = sum/count*(opts.x_max-opts.x_min);
+    printf("(%d)\t%f\n", thread_num, thread_integral);
+  }
+  if(debug) printf("total sum = %f\n", sum);
+  double mean = sum/opts.samples;
+  if(debug) printf("mean = %f\n", mean);
+  double final_integral = mean*(opts.x_max-opts.x_min);
+  printf("Result:\t%f\n", final_integral);
+
+  // End time measurement
+  #ifdef _OPENMP
+    double end_omp_time = omp_get_wtime();
+    double elapsed_omp_time = end_omp_time - start_omp_time;
+  #else
+    auto end_time = std::chrono::high_resolution_clock::now();
+    std::chrono::duration<double> elapsed_time = end_time - start_time;
+  #endif
+
+  #ifdef _OPENMP
+    printf("Time:\t%f\n",elapsed_omp_time);
+  #else
+    printf("Time:\t%f\n",elapsed_time.count());
+  #endif
+
+  printf("Threads:\t%d\n", num_threads);
+  printf("Samples:\t%d\n", opts.samples);
 
   return EXIT_SUCCESS;
 } catch (std::exception &e) {
