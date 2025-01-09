@@ -1,0 +1,56 @@
+Threads: 1
+Policy: static
+name: reference
+N: 2048
+iters: 100000
+NumThreads: 1
+TotalRuntime: 726.974 seconds
+--------------------
+Threads: 2
+Policy: static
+name: reference
+N: 2048
+iters: 100000
+NumThreads: 2
+TotalRuntime: 385.243 seconds
+--------------------
+Threads: 4
+Policy: static
+name: reference
+N: 2048
+iters: 100000
+NumThreads: 4
+TotalRuntime: 196.6 seconds
+--------------------
+Threads: 8
+Policy: static
+name: reference
+N: 2048
+iters: 100000
+NumThreads: 8
+TotalRuntime: 103.593 seconds
+--------------------
+Threads: 10
+Policy: static
+name: reference
+N: 2048
+iters: 100000
+NumThreads: 10
+TotalRuntime: 87.1792 seconds
+--------------------
+Threads: 20
+Policy: static
+name: reference
+N: 2048
+iters: 100000
+NumThreads: 20
+TotalRuntime: 74.1394 seconds
+--------------------
+Threads: 40
+Policy: static
+name: reference
+N: 2048
+iters: 100000
+NumThreads: 40
+TotalRuntime: 78.5551 seconds
+--------------------
