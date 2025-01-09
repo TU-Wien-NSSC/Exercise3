@@ -1,0 +1,22 @@
+Threads: 1
+Policy: static,1
+Runtime: 1344.6
+Threads: 2
+Policy: static,1
+Runtime: 725.011
+Threads: 4
+Policy: static,1
+Runtime: 376.675
+Threads: 8
+Policy: static,1
+Runtime: 411.079
+Threads: 10
+Policy: static,1
+Runtime: 336.413
+Threads: 20
+Policy: static,1
+Runtime: 185.436
+Threads: 40
+Policy: static,1
+Runtime: 1311.67
+
