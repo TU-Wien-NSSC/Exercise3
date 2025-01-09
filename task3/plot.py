@@ -40,7 +40,7 @@ for i, file_path in enumerate(file_paths):
 
 plt.xlabel("Number of Threads")
 plt.ylabel("Runtime (seconds)")
-plt.title("Runtime vs No. of Threads for Multiple Files")
+plt.title("Runtime vs No. of Threads for Monte Carlo Integration")
 plt.legend()
 plt.grid(True)
 
