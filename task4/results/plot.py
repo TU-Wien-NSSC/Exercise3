@@ -3,8 +3,8 @@ import matplotlib.pyplot as plt
 
 #change following to create different plot
 
-#file_name = "main"
-file_name = "main_ex2"
+file_name = "main"
+#file_name = "main_ex2"
 
 file_path = f"results_{file_name}.txt"  
 data = {"dynamic": [], "static": [], "static_1": []}
@@ -19,6 +19,7 @@ with open(file_path, newline='') as file:
 
 
 speedup_data = {}
+efficiency_data = {}
 for policy in data:
     #get the runtime for 1 thread (serial execution)
     serial_runtime = next(runtime for threads, runtime in data[policy] if threads == 1)
@@ -26,6 +27,10 @@ for policy in data:
     #calculate speedup for each entry relative to the runtime with one thread
     speedup_data[policy] = [
         (threads, serial_runtime / runtime) for threads, runtime in data[policy]
+    ]
+
+    efficiency_data[policy] = [
+        (threads, (serial_runtime / runtime) / threads) for threads, runtime in data[policy]
     ]
 
 
@@ -38,7 +43,7 @@ for policy, speedups in speedup_data.items():
 
 plt.xlabel("Number of Threads")
 plt.ylabel("Speedup")
-plt.title("Speedup (relative to serial runtime) vs Threads")
+plt.title("Scaling Speedup")
 plt.legend(title="Scheduling Policy")
 plt.grid(True)
 
@@ -60,4 +65,20 @@ plt.legend(title="Scheduling Policy")
 plt.grid(True)
 
 plt.savefig(f"runtime_plot_{file_name}.png")
+plt.show()
+
+#efficiency Plot
+plt.figure(figsize=(10, 7))
+for policy, efficiencies in efficiency_data.items():
+    threads = [entry[0] for entry in efficiencies]
+    efficiency = [entry[1] for entry in efficiencies]
+    plt.plot(threads, efficiency, marker="o", label=policy.replace("_", ","))
+
+plt.xlabel("Number of Threads")
+plt.ylabel("Efficiency")
+plt.title("Scaling Efficiency")
+plt.legend(title="Scheduling Policy")
+plt.grid(True)
+
+plt.savefig(f"efficiency_plot_{file_name}.png")
 plt.show()

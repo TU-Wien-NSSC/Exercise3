@@ -43,6 +43,8 @@ with open(output_main_ex2, "w") as f_main_ex2:
         for threads, runtime in data:
             if policy == "static,1":
                 policy = "static_1"
+            if threads == 40: #due to extreme inconsistency in data from cluster calculation
+                continue
             f_main_ex2.write(f"{threads},{policy},{runtime}\n")
 
 print(f"Results saved to {output_main} and {output_main_ex2}")
