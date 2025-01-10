@@ -6,7 +6,7 @@ all:
 	$(CXX) $(CXXFLAGS) -o cg $(SRC)
 
 run: 
-	./cg bcsstk11.mtx 250
+	./cg bcsstk11.mtx 1000
 
 plot: plot_Ex2.py
 	python3 plot_Ex2.py
