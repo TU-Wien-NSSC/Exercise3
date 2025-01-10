@@ -225,7 +225,7 @@ void ConjugateGradient_DP(Eigen::SparseMatrix<double>& A,Eigen::VectorXd & x_sta
 
     }
     for (size_t i = 1; i-1 < residual_ratios.size(); ++i) {
-        outFile << i << "\t "<< residual_ratios[i-1] << "\n";
+        outFile << i-1 << "\t "<< residual_ratios[i-1] << "\n";
     }
 
 }
