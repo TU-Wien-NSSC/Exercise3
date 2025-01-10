@@ -5,8 +5,8 @@ iterations = []
 residuals = []
 errors = []
 
-# Define down-sampling step
-step = 100
+# Define optional down-sampling step
+step = 1
 
 with open("residuals_and_errors.txt", "r") as file:
     # Skip the header
