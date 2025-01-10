@@ -162,7 +162,9 @@ std::vector<double> conjugateGradient(const CCSMatrix& A, const std::vector<doub
             std::vector<double> Aek = multiplySymmetric(A, ek);
             err = sqrt(std::inner_product(ek.begin(), ek.end(), Aek.begin(), 0.0)); // sqrt(e_k^T * A * e_k)
 
-            outFile << k << "\t" << res << "\n";
+            if (k % 20 == 0) {
+                outFile << k << "\t" << res << "\n";
+            }
 
         }
         double lastResidual = res;
@@ -210,12 +212,12 @@ void ConjugateGradient_DP(Eigen::SparseMatrix<double>& A,Eigen::VectorXd & x_sta
     std::vector<double> residual_ratios;
     Eigen::SparseMatrix<double> symmetricA = A.selfadjointView<Eigen::Lower>();
     
-    for (int i = 1; i <= max_Iters; i++)
+    for (size_t k = 0; k < max_Iters; k++)
     {
         // Eigen's CG with Diagonal Preconditioner
         Eigen::ConjugateGradient<Eigen::SparseMatrix<double>, Eigen::Lower|Eigen::Upper, Eigen::DiagonalPreconditioner<double>> cg_diagonal;
         cg_diagonal.compute(symmetricA);
-        cg_diagonal.setMaxIterations(i);
+        cg_diagonal.setMaxIterations(k);
         Eigen::VectorXd x = Eigen::VectorXd::Zero(A.rows());
         double initial_residual_norm = (b - A * x).norm();
 
@@ -223,9 +225,9 @@ void ConjugateGradient_DP(Eigen::SparseMatrix<double>& A,Eigen::VectorXd & x_sta
         double residual_norm = (b - A * x).norm();
         residual_ratios.push_back(residual_norm / initial_residual_norm);
 
-    }
-    for (size_t i = 1; i-1 < residual_ratios.size(); ++i) {
-        outFile << i-1 << "\t "<< residual_ratios[i-1] << "\n";
+        if (k % 20 == 0) {
+            outFile << k << "\t "<< residual_ratios[k] << "\n";
+        }
     }
 
 }
