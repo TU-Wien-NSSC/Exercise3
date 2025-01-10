@@ -39,6 +39,7 @@ solver
 
 # Compressed folders
 *.gz
+*.zip
 
 # VS Code project files
 .vscode/
